@@ -1,57 +1,161 @@
-
-class Grid {
-    arr : Array<Array<Boolean>>;
-    height : number = 10;
-    width : number = 10;
-
-    constructor(){
-        this.arr = Array<Array<Boolean>>(this.width);
-        for (let index = 0; index < this.arr.length; index++) {
-            let t = Array<Boolean>(this.height);
-            for (let j = 0; j < t.length; j++) {
-                t[j] = false;
-                
-            }
-            this.arr[index] = t;
-        }
-    }
-
-    /**
-     * add
-     */
-    public add(x: number, y: number) {
-        this.arr[x][y] = true;
-    }
-
-    public remove(x: number, y: number) {
-        this.arr[x][y] = false;
-    }
-
-    public get_neighbor(x: number, y: number){
-        let c = 0;
-        for (let i = x-1; i < x+2; i++) {
-            for (let j = y-1; j < y+2; j++) {
-                if (!(i == x && j == y)){
-                    if(this.arr[i][j]){
-                        c++;
-                    }
-                    
-                }
-            }
-        }
-        return c;
-    }
+function getRandomBool() {
+  return !!Math.floor(Math.random() * 2);
 }
 
+class Grid {
+  arr: Array<Array<Cell>>;
+  height: number = 60;
+  width: number = 60;
+  div: HTMLElement = document.getElementById('grid') || document.createElement('div');
+  timer: number | null;
+
+  constructor() {
+    this.arr = Array<Array<Cell>>(this.width);
+    this.div.style.setProperty('--grid-rows', this.height.toString());
+    this.div.style.setProperty('--grid-cols', this.width.toString());
+    for (let index = 0; index < this.arr.length; index++) {
+      let t = Array<Cell>(this.height);
+      for (let j = 0; j < t.length; j++) {
+        t[j] = new Cell();
+        this.div.appendChild(t[j].div);
+      }
+      this.arr[index] = t;
+    }
+    let button = document.createElement("button")
+    button.addEventListener("click", this.next_iteration , false);
+    button.innerText = "Next iteration";
+    document.body.appendChild(button);
+
+    let button2 = document.createElement("button")
+    button2.addEventListener("click", this.soup , false);
+    button2.innerText = "Soup";
+    document.body.appendChild(button2);
+
+    let b = document.createElement("button");
+    b.addEventListener("click", () => {
+      for (let i = 0; i < this.height ; i++){
+        for (let j = 0; j < this.width; j++ ){
+          this.arr[i][j].dead();
+        }
+      }
+    }, false );
+    b.innerText = "clear";
+    document.body.appendChild(b)
+
+    let button3 = document.createElement("button")
+    button3.addEventListener("click", this.play_pause , false);
+    button3.innerText = "Play / Pause";
+    document.body.appendChild(button3);
+
+    
+  }
+
+  public add(x: number, y: number) {
+    this.arr[x][y].alive();
+  }
+
+  public remove(x: number, y: number) {
+    this.arr[x][y].dead();
+  }
+
+  public get_neighbor(x: number, y: number) {
+    let c = 0;
+    for (let i = x - 1; i < x + 2; i++) {
+      for (let j = y - 1; j < y + 2; j++) {
+        if (!(i<0 || j<0 || i >= this.height || j >= this.width )){
+          if (!(i == x && j == y)) {
+            if (this.arr[i][j].state) {
+              
+              c++;
+            }
+          }
+        }
+        
+      }
+    }
+    return c;
+  }
+
+
+
+  soup = () => {
+    for (let i = 0; i < this.height ; i++){
+      for (let j = 0; j < this.width; j++ ){
+        if(getRandomBool()){
+          this.arr[i][j].change();
+        }
+      }
+    }
+  }
+
+  next_iteration = () =>{
+    let change_array : Array<Cell> = [];
+    for (let i = 0; i < this.height ; i++){
+      for (let j = 0; j < this.width; j++ ){
+        let n = this.get_neighbor(i,j);
+        let c = this.arr[i][j]
+        if (c != null){
+          if (c.state){
+            if(n<=1 || n >= 4){
+              change_array.push(c);
+            }
+          }else{
+            if(n == 3){
+              change_array.push(c);
+            }
+          }
+        }
+        
+      }
+    }
+    for ( let cell of change_array){
+      cell.change();
+      
+    }
+  }
+
+  play_pause = () => {
+    
+    if( this.timer == null){
+      this.timer = setInterval(this.next_iteration, 500);
+    }else{
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+    
+  }
+}
+
+class Cell {
+  div: HTMLDivElement = document.createElement('div');
+  state: Boolean = false;
+
+  constructor() {
+    this.div.className = 'cell';
+    this.div.addEventListener("click", this.change , false);
+    this.div.style.backgroundColor = 'black';
+  }
+
+  change = () => {
+    if(this.state){
+      this.dead();
+    }else{
+      this.alive();
+    }
+  }
+
+  public alive() {
+    this.div.style.backgroundColor = 'white';
+    this.state = true;
+  }
+
+  public dead() {
+    this.div.style.backgroundColor = 'black';
+    this.state = false;
+  }
+
+
+
+}
 
 const g = new Grid();
-
-g.add(0,0);
-g.add(1,0);
-g.add(2,0);
-g.add(2,1);
-
-console.log(g.arr);
-console.log(g.get_neighbor(1,1));
-
-
