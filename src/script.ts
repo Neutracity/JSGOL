@@ -4,10 +4,10 @@ function getRandomBool() {
 
 class Grid {
   arr: Array<Array<Cell>>;
-  height: number = 60;
-  width: number = 60;
+  height: number = 100;
+  width: number = 100;
   div: HTMLElement = document.getElementById('grid') || document.createElement('div');
-  timer: number | null;
+  timer: number | null | undefined;
 
   constructor() {
     this.arr = Array<Array<Cell>>(this.width);
